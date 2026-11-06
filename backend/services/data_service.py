@@ -3,6 +3,9 @@ import pandas as pd
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
+ANOMALY_START = "2017-01-01"
+ANOMALY_END = "2018-08-31"
+
 
 def _load():
     orders = pd.read_csv(
@@ -112,6 +115,109 @@ def delivery_vs_score():
     return {"faixas": g.index.astype(str).tolist(), "series": g.tolist()}
 
 
+# ---------------------------------------------------------------------------
+# Anomalias (z-score com janela móvel)
+# ---------------------------------------------------------------------------
+def _daily_orders():
+    d = DF.dropna(subset=["order_purchase_timestamp"])
+    s = d.groupby(d["order_purchase_timestamp"].dt.normalize()).size()
+    s = s.loc[ANOMALY_START:ANOMALY_END]
+    return s.asfreq("D", fill_value=0)
+
+
+def _nullable(series, ndigits=1):
+    return [None if pd.isna(v) else round(float(v), ndigits) for v in series]
+
+
+def anomaly_data(window=28, threshold=3.0):
+    s = _daily_orders()
+
+    # shift(1): cada dia é comparado com a janela dos dias ANTERIORES,
+    # para o próprio pico não inflar a média/desvio que o avalia.
+    mean = s.rolling(window, min_periods=window).mean().shift(1)
+    std = s.rolling(window, min_periods=window).std().shift(1).replace(0, float("nan"))
+    z = (s - mean) / std
+
+    upper = mean + threshold * std
+    lower = (mean - threshold * std).clip(lower=0)
+
+    flagged = z[z.abs() > threshold].dropna()
+    anomalies = [
+        {
+            "date": idx.strftime("%Y-%m-%d"),
+            "value": int(s.loc[idx]),
+            "expected": round(float(mean.loc[idx]), 1),
+            "z": round(float(zv), 2),
+            "type": "pico" if zv > 0 else "queda",
+        }
+        for idx, zv in flagged.items()
+    ]
+
+    return {
+        "dates": [d.strftime("%Y-%m-%d") for d in s.index],
+        "series": [int(v) for v in s.tolist()],
+        "upper": _nullable(upper),
+        "lower": _nullable(lower),
+        "anomalies": anomalies,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Previsão simples: tendência linear + sazonalidade semanal (próximos 30 dias)
+# ---------------------------------------------------------------------------
+def forecast_data(horizon=30, history_days=90):
+    s = _daily_orders()
+    hist = s.tail(history_days).astype(float)
+    n = len(hist)
+    if n < 14:
+        return {
+            "history_dates": [],
+            "history": [],
+            "forecast_dates": [],
+            "forecast": [],
+            "lower": [],
+            "upper": [],
+            "horizon_days": horizon,
+            "total_forecast": 0,
+        }
+
+    t = pd.Series(range(n), index=hist.index, dtype=float)
+    t_mean = float(t.mean())
+    y_mean = float(hist.mean())
+    denom = float(((t - t_mean) ** 2).sum())
+    slope = float(((t - t_mean) * (hist - y_mean)).sum() / denom) if denom else 0.0
+    intercept = y_mean - slope * t_mean
+
+    trend_fit = intercept + slope * t
+    resid = hist - trend_fit
+    seasonal = resid.groupby(resid.index.dayofweek).mean()
+    resid_adj = resid - resid.index.map(lambda d: float(seasonal.get(d.dayofweek, 0)))
+    sigma = float(resid_adj.std(ddof=1) or 0.0)
+
+    last_date = hist.index.max()
+    forecast_dates = pd.date_range(last_date + pd.Timedelta(days=1), periods=horizon, freq="D")
+
+    preds, lowers, uppers = [], [], []
+    for i, d in enumerate(forecast_dates, start=1):
+        base = intercept + slope * (n - 1 + i)
+        pred = max(0.0, base + float(seasonal.get(d.dayofweek, 0)))
+        half = 1.96 * sigma * (1 + i / n) ** 0.5
+        preds.append(round(pred, 1))
+        lowers.append(round(max(0.0, pred - half), 1))
+        uppers.append(round(pred + half, 1))
+
+    return {
+        "history_dates": [d.strftime("%Y-%m-%d") for d in hist.index],
+        "history": [int(v) for v in hist.tolist()],
+        "forecast_dates": [d.strftime("%Y-%m-%d") for d in forecast_dates],
+        "forecast": preds,
+        "lower": lowers,
+        "upper": uppers,
+        "horizon_days": horizon,
+        "total_forecast": round(sum(preds), 1),
+    }
+
+
 def build_summary():
     """Resumo estatístico em texto, enviado como contexto à LLM."""
     k = get_kpis()
@@ -126,6 +232,17 @@ def build_summary():
     peak_cancel = cancel_by_month.nlargest(3).to_dict()
     avg_ticket = round(k["total_sales"] / max(k["total_orders"], 1), 2)
 
+    an = anomaly_data()
+    top_an = sorted(an["anomalies"], key=lambda a: abs(a["z"]), reverse=True)[:5]
+    anomalies_txt = "; ".join(
+        f"{a['date']} ({a['type']}: {a['value']} pedidos vs ~{a['expected']} esperados, z={a['z']})"
+        for a in top_an
+    ) or "nenhuma detectada"
+
+    fc = forecast_data()
+    fc_start = fc["forecast_dates"][0] if fc["forecast_dates"] else "-"
+    fc_end = fc["forecast_dates"][-1] if fc["forecast_dates"] else "-"
+
     return f"""
 - Faturamento (sem cancelados): R$ {k['total_sales']:,.2f}
 - Pedidos: {k['total_orders']} | Ticket médio: R$ {avg_ticket}
@@ -136,6 +253,8 @@ def build_summary():
 - 3 meses com maior % de cancelamento: {peak_cancel}
 - Top 3 categorias (R$): {top_categories(3)['categories']}
 - Top 5 estados por pedidos: {top_states(5)['states']}
+- Anomalias no volume diário de pedidos ({ANOMALY_START} a {ANOMALY_END}, z-score móvel de 28 dias, limite 3), {len(an['anomalies'])} no total. Maiores: {anomalies_txt}
+- Previsão simples de pedidos ({fc_start} a {fc_end}): ~{fc['total_forecast']} pedidos no horizonte de {fc['horizon_days']} dias (tendência linear + sazonalidade semanal, intervalo ~95%)
 """.strip()
 
 

@@ -1,4 +1,4 @@
-# Ecommerce Ai Dashboard (frontend)
+# Ecommerce AI Dashboard (frontend)
 
 ## Install the dependencies
 

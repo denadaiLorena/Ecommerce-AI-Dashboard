@@ -1,1 +1,40 @@
-/* app global css */
+/* ── Global Transitions ── */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ── Light Mode ── */
+body {
+  background-color: #f0f2f5;
+}
+
+/* ── Dark Mode ── */
+body.body--dark {
+  background-color: #121212;
+}
+
+/* ── Card Styles ── */
+.q-card {
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+body.body--dark .q-card {
+  background-color: #1e1e2f;
+  border-color: #2d2d44;
+}
+
+/* ── Smooth scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #90909060;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #90909090;
+}

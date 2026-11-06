@@ -1,11 +1,14 @@
+import traceback
+
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from dotenv import load_dotenv
 
-from services import data_service as ds
-from services import ai_service
+load_dotenv()
 
-load_dotenv()  # carrega variáveis de ambiente do arquivo .env
+from services import data_service as ds  # noqa: E402
+from services import ai_service  # noqa: E402
+
 app = Flask(__name__)
 CORS(app)  # em produção, restrinja à origem do Quasar
 
@@ -45,6 +48,16 @@ def delivery_vs_score():
     return jsonify(ds.delivery_vs_score())
 
 
+@app.get("/api/charts/anomalies")
+def anomalies():
+    return jsonify(ds.anomaly_data())
+
+
+@app.get("/api/charts/forecast")
+def forecast():
+    return jsonify(ds.forecast_data())
+
+
 @app.post("/api/ai-insight")
 def ai_insight():
     body = request.get_json(silent=True) or {}
@@ -60,8 +73,9 @@ def ai_insight():
         return jsonify({"insight": ai_service.ask(question, ds.SUMMARY)})
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
-    except Exception:
-        return jsonify({"error": "Falha ao consultar a IA. Tente novamente."}), 502
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"error": f"Falha ao consultar a IA: {type(e).__name__}"}), 502
 
 
 if __name__ == "__main__":
