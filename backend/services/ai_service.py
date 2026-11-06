@@ -8,6 +8,7 @@ PRESETS = {
     "delivery_bottlenecks": "Identifique gargalos no tempo de entrega, indicando estados e faixas de prazo mais problemáticos.",
     "cancellation_peak": "Analise o que pode ter causado os picos de cancelamento e sugira hipóteses a validar.",
     "increase_ticket": "Gere recomendações práticas para aumentar o ticket médio.",
+    "customer_complaints": "Analise as causas-raiz de reclamações dos clientes (notas 1 e 2 nos reviews) e proponha um plano de ação imediato para reverter a insatisfação.",
 }
 
 

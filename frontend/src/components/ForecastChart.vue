@@ -5,37 +5,76 @@
         <div class="row items-center no-wrap">
           <q-icon name="trending_up" color="secondary" size="22px" class="q-mr-sm" />
           <div class="chart-title">{{ title }}</div>
-          <q-badge color="teal-6" rounded class="q-ml-sm" :label="`+${data.horizon_days} dias previstos`" />
+          <q-badge
+            v-if="data.metrics && data.metrics.accuracy > 0"
+            color="positive"
+            rounded
+            class="q-ml-sm cursor-pointer"
+          >
+            <q-icon name="verified" size="13px" class="q-mr-xs" />
+            {{ data.metrics.accuracy }}% Acurácia
+            <q-tooltip class="bg-blue-grey-10 text-white shadow-4" max-width="320px">
+              <div class="text-weight-bold q-mb-xs">Métricas de Validação (Backtesting 30d):</div>
+              <div>• <strong>Modelo:</strong> {{ data.metrics.model_name }}</div>
+              <div>• <strong>Acurácia:</strong> {{ data.metrics.accuracy }}%</div>
+              <div>• <strong>MAPE:</strong> {{ data.metrics.mape }}% (Erro Percentual Absoluto Médio)</div>
+              <div>• <strong>MAE:</strong> {{ isRevenue ? 'R$ ' + data.metrics.mae.toLocaleString('pt-BR') : data.metrics.mae }} (Erro Médio Absoluto)</div>
+              <div>• <strong>RMSE:</strong> {{ isRevenue ? 'R$ ' + data.metrics.rmse.toLocaleString('pt-BR') : data.metrics.rmse }}</div>
+            </q-tooltip>
+          </q-badge>
         </div>
-        <q-btn flat round dense icon="help_outline" size="sm" :color="$q.dark.isActive ? 'grey-4' : 'grey-7'">
-          <q-tooltip class="bg-blue-grey-10 text-white shadow-3" max-width="320px" anchor="top middle" self="bottom middle">
-            <div class="text-weight-bold q-mb-xs">Modelo Preditivo Estatístico</div>
-            <div style="font-size: 0.82rem; line-height: 1.4">
-              Combina regressão linear da tendência dos últimos 90 dias com decomposição sazonal para cada dia da semana. A área sombreada projeta o intervalo de confiança a 95%.
-            </div>
-          </q-tooltip>
-        </q-btn>
+
+        <!-- Alternador de Métrica: Pedidos vs Faturamento -->
+        <div class="row items-center q-gutter-x-sm">
+          <q-btn-toggle
+            v-model="activeMetric"
+            dense
+            rounded
+            unelevated
+            no-caps
+            toggle-color="secondary"
+            :color="$q.dark.isActive ? 'grey-9' : 'grey-3'"
+            :text-color="$q.dark.isActive ? 'grey-4' : 'grey-8'"
+            :options="[
+              { label: 'Pedidos', value: 'orders', icon: 'local_mall' },
+              { label: 'Faturamento', value: 'revenue', icon: 'attach_money' }
+            ]"
+            @update:model-value="onMetricToggle"
+          />
+
+          <q-btn flat round dense icon="help_outline" size="sm" :color="$q.dark.isActive ? 'grey-4' : 'grey-7'">
+            <q-tooltip class="bg-blue-grey-10 text-white shadow-3" max-width="320px" anchor="top middle" self="bottom middle">
+              <div class="text-weight-bold q-mb-xs">Modelo Holt-Winters com Sazonalidade 7D</div>
+              <div style="font-size: 0.82rem; line-height: 1.4">
+                Utiliza Suavização Exponencial Tripla com amortecimento de tendência e efeito sazonal para cada dia da semana. Validado com backtest temporal nos últimos 30 dias conhecidos.
+              </div>
+            </q-tooltip>
+          </q-btn>
+        </div>
       </div>
 
       <!-- Métricas Resumo da Previsão -->
-      <div class="row items-center justify-between q-mt-sm q-pa-sm forecast-meta-box" :class="{ 'forecast-meta-box--dark': $q.dark.isActive }">
+      <div
+        class="row items-center justify-between q-mt-sm q-pa-sm forecast-meta-box"
+        :class="{ 'forecast-meta-box--dark': $q.dark.isActive }"
+      >
         <div class="row items-center q-gutter-x-md text-caption">
           <div class="row items-center">
             <span class="legend-dot" :style="{ background: $q.dark.isActive ? '#00E5FF' : '#1976D2' }"></span>
-            <span>Histórico (90d)</span>
+            <span>Histórico Real (90d)</span>
           </div>
           <div class="row items-center">
             <span class="legend-dash" style="border-top-color: #00BFA5"></span>
-            <span>Previsão futura</span>
+            <span>Previsão ({{ isRevenue ? 'Receita R$' : 'Pedidos' }})</span>
           </div>
           <div class="row items-center">
             <span class="legend-box" style="background: rgba(0, 191, 165, 0.25)"></span>
-            <span>Área de Confiança (95%)</span>
+            <span>Intervalo de Confiança (95%)</span>
           </div>
         </div>
 
         <div class="text-caption text-weight-bold" :class="$q.dark.isActive ? 'text-teal-3' : 'text-teal-9'">
-          Total projetado: {{ totalLabel }} pedidos
+          Total projetado: {{ totalLabel }}
         </div>
       </div>
     </q-card-section>
@@ -50,14 +89,14 @@
       />
       <div v-else class="column items-center justify-center q-pa-xl text-grey-6" style="min-height: 240px">
         <q-spinner-puff color="secondary" size="44px" />
-        <div class="q-mt-md text-caption">Gerando modelo de regressão e sazonalidade...</div>
+        <div class="q-mt-md text-caption">Ajustando modelo preditivo Holt-Winters...</div>
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import type { ApexOptions } from 'apexcharts'
 import type { ForecastChartData } from '../types'
@@ -69,9 +108,39 @@ const props = defineProps<{
   data: ForecastChartData
 }>()
 
-const totalLabel = computed(() =>
-  Math.round(props.data.total_forecast || 0).toLocaleString('pt-BR')
+const emit = defineEmits<{
+  (e: 'metric-change', metric: 'orders' | 'revenue'): void
+}>()
+
+const activeMetric = ref<'orders' | 'revenue'>(props.data.metric || 'orders')
+
+watch(
+  () => props.data.metric,
+  (newVal) => {
+    if (newVal) activeMetric.value = newVal
+  }
 )
+
+function onMetricToggle(val: 'orders' | 'revenue') {
+  emit('metric-change', val)
+}
+
+const isRevenue = computed(() => activeMetric.value === 'revenue')
+
+const formatValue = (v: number): string => {
+  if (isRevenue.value) {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+  }
+  return `${Math.round(v).toLocaleString('pt-BR')} pedidos`
+}
+
+const totalLabel = computed(() => {
+  const total = props.data.total_forecast || 0
+  if (isRevenue.value) {
+    return total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+  }
+  return `${Math.round(total).toLocaleString('pt-BR')} pedidos`
+})
 
 const toMs = (d: string): number => new Date(`${d}T00:00:00`).getTime()
 
@@ -97,14 +166,18 @@ const series = computed(() => {
   return [
     { name: 'Intervalo de Confiança (95%)', type: 'rangeArea', data: range },
     {
-      name: 'Histórico Real',
+      name: isRevenue.value ? 'Faturamento Histórico' : 'Histórico Real',
       type: 'line',
       data: props.data.history_dates.map((d, i) => ({
         x: toMs(d),
         y: props.data.history[i]
       }))
     },
-    { name: 'Previsão Preditiva', type: 'line', data: forecastLine }
+    {
+      name: isRevenue.value ? 'Projeção de Faturamento' : 'Previsão de Pedidos',
+      type: 'line',
+      data: forecastLine
+    }
   ]
 })
 
@@ -124,7 +197,7 @@ const options = computed<ApexOptions>(() => {
       fontFamily: 'inherit',
       background: 'transparent',
       foreColor: textColor,
-      animations: { enabled: true, speed: 500 }
+      animations: { enabled: true, speed: 400 }
     },
     theme: { mode: isDark ? 'dark' : 'light' },
     colors: [rangeColor, histColor, forecastColor],
@@ -141,7 +214,12 @@ const options = computed<ApexOptions>(() => {
     yaxis: {
       min: 0,
       labels: {
-        formatter: (v: number) => Math.round(v).toLocaleString('pt-BR'),
+        formatter: (v: number) => {
+          if (isRevenue.value) {
+            return `R$ ${(v / 1000).toFixed(0)}k`
+          }
+          return Math.round(v).toLocaleString('pt-BR')
+        },
         style: { colors: textColor, fontSize: '11px' }
       }
     },
@@ -150,7 +228,7 @@ const options = computed<ApexOptions>(() => {
       shared: true,
       x: { format: 'dd/MM/yyyy' },
       y: {
-        formatter: (v: number) => (v == null ? '' : Math.round(v).toLocaleString('pt-BR'))
+        formatter: (v: number) => (v == null ? '' : formatValue(v))
       }
     }
   }

@@ -1,7 +1,7 @@
 import traceback
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 
 load_dotenv()
@@ -55,7 +55,57 @@ def anomalies():
 
 @app.get("/api/charts/forecast")
 def forecast():
-    return jsonify(ds.forecast_data())
+    metric = request.args.get("metric", "orders")
+    return jsonify(ds.forecast_data(metric=metric))
+
+
+@app.get("/api/charts/lead-time")
+def lead_time():
+    return jsonify(ds.lead_time_funnel())
+
+
+@app.get("/api/charts/freight-by-region")
+def freight_by_region():
+    return jsonify(ds.freight_by_region())
+
+
+@app.get("/api/charts/installments-ticket")
+def installments_ticket():
+    return jsonify(ds.installments_vs_ticket())
+
+
+@app.get("/api/charts/reviews-distribution")
+def reviews_distribution():
+    return jsonify(ds.reviews_distribution())
+
+
+@app.get("/api/charts/review-topics")
+def review_topics():
+    return jsonify(ds.review_topics())
+
+
+@app.post("/api/simulate")
+def simulate():
+    body = request.get_json(silent=True) or {}
+    delivery = float(body.get("delivery_reduction", 0.0))
+    installments = float(body.get("installments_boost", 0.0))
+    freight = float(body.get("freight_discount_ne", 0.0))
+    return jsonify(ds.simulate_scenario(
+        delivery_reduction=delivery,
+        installments_boost=installments,
+        freight_discount_ne=freight
+    ))
+
+
+@app.get("/api/export/csv")
+def export_csv():
+    csv_text = ds.generate_csv_report()
+    csv_bytes = ("\ufeff" + csv_text).encode("utf-8")
+    return Response(
+        csv_bytes,
+        mimetype="text/csv; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=relatorio_executivo_ecommerce.csv"}
+    )
 
 
 @app.post("/api/ai-insight")

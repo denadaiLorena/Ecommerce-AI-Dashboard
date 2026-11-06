@@ -45,6 +45,8 @@ const props = withDefaults(
     height?: number | string
     horizontal?: boolean
     currency?: boolean
+    percentage?: boolean
+    unit?: string
     yMin?: number
     yMax?: number
     description?: string
@@ -60,6 +62,8 @@ const props = withDefaults(
     height: 300,
     horizontal: false,
     currency: false,
+    percentage: false,
+    unit: '',
     description: '',
     caption: '',
     badge: '',
@@ -69,17 +73,25 @@ const props = withDefaults(
 
 const hasData = computed(() => props.data && props.data.length > 0)
 
-const fmt = (v: number): string =>
-  props.currency
-    ? v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
-    : v.toLocaleString('pt-BR')
+const fmt = (v: number): string => {
+  if (props.currency) {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+  }
+  if (props.percentage) {
+    return `${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`
+  }
+  if (props.unit) {
+    return `${v.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${props.unit}`
+  }
+  return v.toLocaleString('pt-BR')
+}
 
 const chartSeries = computed(() =>
   props.type === 'donut' ? props.data : [{ name: props.seriesName, data: props.data }]
 )
 
-const darkPalette = ['#7C4DFF', '#00E5FF', '#00E676', '#FFAB00', '#FF5252', '#FF4081']
-const lightPalette = ['#1976D2', '#00897B', '#FB8C00', '#E53935', '#8E24AA', '#3949AB']
+const darkPalette = ['#7C4DFF', '#00E5FF', '#00E676', '#FFAB00', '#FF5252', '#FF4081', '#40C4FF', '#E040FB']
+const lightPalette = ['#1976D2', '#00897B', '#FB8C00', '#E53935', '#8E24AA', '#3949AB', '#0288D1', '#5E35B1']
 
 const options = computed<ApexOptions>(() => {
   const isDark = $q.dark.isActive

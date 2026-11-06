@@ -32,6 +32,40 @@
           ]"
         />
 
+        <!-- Botão de Exportação de Relatórios -->
+        <q-btn-dropdown
+          outline
+          no-caps
+          rounded
+          dense
+          icon="file_download"
+          label="Exportar"
+          :color="$q.dark.isActive ? 'grey-4' : 'primary'"
+          class="q-px-sm"
+        >
+          <q-list dense>
+            <q-item clickable v-close-popup @click="showReportModal = true">
+              <q-item-section avatar>
+                <q-icon name="picture_as_pdf" color="primary" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-weight-bold">Relatório Executivo (PDF / Print)</q-item-label>
+                <q-item-label caption>Layout oficial formatado para apresentação</q-item-label>
+              </q-item-section>
+            </q-item>
+
+            <q-item clickable v-close-popup @click="downloadCsv">
+              <q-item-section avatar>
+                <q-icon name="table_view" color="positive" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-weight-bold">Planilha de Métricas (CSV / Excel)</q-item-label>
+                <q-item-label caption>Dados brutos com acentuação UTF-8</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-btn-dropdown>
+
         <q-btn
           outline
           round
@@ -65,9 +99,9 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12 col-lg-8">
         <div class="row q-col-gutter-md">
-          <!-- 1. Inteligência Preditiva & Anomalias (Destaque Topo) -->
+          <!-- 1. INTELIGÊNCIA PREDITIVA & ANOMALIAS -->
           <div class="col-12">
-            <div class="section-tag row items-center q-mb-sm">
+            <div class="section-tag row items-center q-mb-xs">
               <q-icon name="insights" size="18px" class="q-mr-xs text-secondary" />
               <span class="text-weight-bold text-caption text-uppercase">Previsão e Detecção Estatística</span>
             </div>
@@ -75,8 +109,9 @@
 
           <div class="col-12">
             <ForecastChart
-              title="Previsão de Pedidos para os Próximos 30 Dias"
+              :title="forecast.metric === 'revenue' ? 'Projeção de Faturamento para os Próximos 30 Dias' : 'Previsão de Pedidos para os Próximos 30 Dias'"
               :data="forecast"
+              @metric-change="onForecastMetricChange"
             />
           </div>
 
@@ -87,12 +122,151 @@
             />
           </div>
 
-          <!-- 2. Dinâmica de Vendas e Faturamento -->
+          <!-- SIMULADOR WHAT-IF DE DECISÕES ESTRATÉGICAS -->
           <div class="col-12 q-mt-sm">
-            <div class="section-tag row items-center q-mb-sm">
-              <q-icon name="point_of_sale" size="18px" class="q-mr-xs text-primary" />
-              <span class="text-weight-bold text-caption text-uppercase">Dinâmica Temporal & Receita</span>
+            <ScenarioSimulator @ask-ai-scenario="onAskAiScenario" />
+          </div>
+
+          <!-- 2. CADEIA LOGÍSTICA & EFICIÊNCIA OPERACIONAL -->
+          <div class="col-12 q-mt-sm">
+            <div class="section-tag row items-center q-mb-xs">
+              <q-icon name="local_shipping" size="18px" class="q-mr-xs text-amber-9" />
+              <span class="text-weight-bold text-caption text-uppercase">Cadeia Logística & Prazos</span>
             </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Tempo Médio por Etapa Logística"
+              type="bar"
+              series-name="Dias Médios"
+              unit="dias"
+              :labels="leadTime.stages"
+              :data="leadTime.series"
+              badge="Gargalo"
+              badge-color="deep-orange"
+              description="Decompõe o prazo total: 1) Aprovação financeira (0.01 dia), 2) Despacho pelo Seller (1.8 dias) e 3) Trânsito com Transportadora (7.1 dias). Revela que 79% do tempo decorre do transporte interestadual."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Impacto do Prazo de Entrega na Nota"
+              type="bar"
+              series-name="Nota Média"
+              :labels="dvs.faixas"
+              :data="dvs.series"
+              :y-min="0"
+              :y-max="5"
+              badge="Sensibilidade"
+              badge-color="amber-9"
+              description="Correlação entre dias de entrega e nota de avaliação (1 a 5). Prazos acima de 21 dias registram queda acentuada na satisfação do consumidor."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Peso do Frete sobre o Pedido por Região"
+              type="bar"
+              series-name="Frete / Receita"
+              percentage
+              :labels="freightRegion.regions"
+              :data="freightRegion.series"
+              badge="Regional"
+              badge-color="purple-8"
+              description="Mediana da razão entre o valor do frete e o preço dos produtos. No Norte e Nordeste, o frete ultrapassa 30-35% do valor da mercadoria, sendo principal causa de desistências."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Top 10 Estados por Volume de Pedidos"
+              type="bar"
+              series-name="Pedidos"
+              horizontal
+              :labels="states.states"
+              :data="states.series"
+              badge="Concentração"
+              badge-color="indigo-7"
+              description="Concentração geográfica da base de compradores nos 10 maiores estados brasileiros."
+            />
+          </div>
+
+          <!-- 3. COMERCIAL, PAGAMENTOS & ALAVANCAGEM DE TICKET -->
+          <div class="col-12 q-mt-sm">
+            <div class="section-tag row items-center q-mb-xs">
+              <q-icon name="point_of_sale" size="18px" class="q-mr-xs text-primary" />
+              <span class="text-weight-bold text-caption text-uppercase">Comercial, Meios de Pagamento & Ticket</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Faturamento Mensal Consolidado"
+              type="area"
+              series-name="Faturamento"
+              currency
+              :labels="filteredMonth.months"
+              :data="filteredMonth.series"
+              badge="Histórico"
+              badge-color="positive"
+              description="Soma da receita bruta gerada por pedidos concluídos a cada mês, descontando pedidos cancelados."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Ticket Médio por Número de Parcelas"
+              type="bar"
+              series-name="Ticket Médio"
+              currency
+              :labels="installments.installments"
+              :data="installments.series"
+              badge="Alavancagem"
+              badge-color="teal-8"
+              description="Analisa como o parcelamento no cartão estimula compras maiores: de R$ 96 em 1x para mais de R$ 330 em 7-10x (+240% de ticket médio)."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Top 10 Categorias por Receita"
+              type="bar"
+              series-name="Receita"
+              horizontal
+              currency
+              :labels="cats.categories"
+              :data="cats.series"
+              badge="Rentabilidade"
+              badge-color="cyan-8"
+              description="Classificação dos segmentos de produtos com maior volume monetário faturado."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Distribuição das Avaliações (CSAT)"
+              type="donut"
+              :labels="reviewsDist.scores"
+              :data="reviewsDist.series"
+              badge="Satisfação"
+              badge-color="amber-8"
+              description="Distribuição global das notas deixadas pelos clientes: 57.8% de 5 estrelas e 11.5% de detratores com 1 estrela."
+            />
+          </div>
+
+          <div class="col-12 col-md-6">
+            <SalesChart
+              title="Causas de Insatisfação (Reviews 1-2★)"
+              type="bar"
+              series-name="Menções"
+              horizontal
+              :labels="reviewTopics.topics"
+              :data="reviewTopics.series"
+              badge="Causa-Raiz"
+              badge-color="negative"
+              description="Análise das 10.890 avaliações de detratores. Revela que 58.6% de todas as notas baixas são causadas exclusivamente por atrasos de entrega ou mercadoria não recebida."
+            />
           </div>
 
           <div class="col-12 col-md-6">
@@ -110,79 +284,13 @@
 
           <div class="col-12 col-md-6">
             <SalesChart
-              title="Faturamento Mensal Consolidado"
-              type="area"
-              series-name="Faturamento"
-              currency
-              :labels="filteredMonth.months"
-              :data="filteredMonth.series"
-              badge="Histórico"
-              badge-color="positive"
-              description="Soma da receita bruta gerada por pedidos concluídos a cada mês, descontando pedidos cancelados."
-            />
-          </div>
-
-          <!-- 3. Satisfação, Pagamentos e Logística -->
-          <div class="col-12 q-mt-sm">
-            <div class="section-tag row items-center q-mb-sm">
-              <q-icon name="local_shipping" size="18px" class="q-mr-xs text-amber-9" />
-              <span class="text-weight-bold text-caption text-uppercase">Logística, Pagamentos & Categorias</span>
-            </div>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <SalesChart
-              title="Impacto do Prazo de Entrega na Nota"
-              type="bar"
-              series-name="Nota Média"
-              :labels="dvs.faixas"
-              :data="dvs.series"
-              :y-min="0"
-              :y-max="5"
-              badge="Sensibilidade"
-              badge-color="amber-9"
-              description="Correlação entre dias de entrega e nota de avaliação (1 a 5). Prazos acima de 21 dias registram queda acentuada na satisfação."
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <SalesChart
               title="Métodos de Pagamento Utilizados"
               type="donut"
               :labels="pay.labels"
               :data="pay.series"
               badge="Preferência"
               badge-color="purple-7"
-              description="Proporção das compras realizadas por cartão de crédito, boleto, voucher e débito."
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <SalesChart
-              title="Top 10 Estados por Volume de Pedidos"
-              type="bar"
-              series-name="Pedidos"
-              horizontal
-              :labels="states.states"
-              :data="states.series"
-              badge="Regional"
-              badge-color="indigo-7"
-              description="Concentração geográfica da base de compradores nos 10 maiores estados brasileiros."
-            />
-          </div>
-
-          <div class="col-12 col-md-6">
-            <SalesChart
-              title="Top 10 Categorias por Receita"
-              type="bar"
-              series-name="Receita"
-              horizontal
-              currency
-              :labels="cats.categories"
-              :data="cats.series"
-              badge="Rentabilidade"
-              badge-color="teal-8"
-              description="Classificação dos segmentos de produtos com maior volume monetário faturado."
+              description="Proporção das compras realizadas por cartão de crédito, boleto bancário, voucher e débito."
             />
           </div>
         </div>
@@ -191,10 +299,18 @@
       <!-- Co-piloto de Inteligência Artificial Lateral -->
       <div class="col-12 col-lg-4">
         <div class="sticky-ai">
-          <AiInsightPanel />
+          <AiInsightPanel ref="aiPanel" />
         </div>
       </div>
     </div>
+
+    <!-- Modal de Relatório Executivo Oficial (A4 Print / PDF Ready) -->
+    <ExecutiveReportModal
+      v-model="showReportModal"
+      :kpis="kpis"
+      :forecast="forecast"
+      :anomalies-count="anomalies.anomalies.length"
+    />
   </q-page>
 </template>
 
@@ -205,6 +321,8 @@ import KpiCard from '../components/KpiCard.vue'
 import SalesChart from '../components/SalesChart.vue'
 import AnomalyChart from '../components/AnomalyChart.vue'
 import ForecastChart from '../components/ForecastChart.vue'
+import ScenarioSimulator from '../components/ScenarioSimulator.vue'
+import ExecutiveReportModal from '../components/ExecutiveReportModal.vue'
 import AiInsightPanel from '../components/AiInsightPanel.vue'
 import type {
   Kpis,
@@ -214,6 +332,11 @@ import type {
   PaymentChart,
   StatesChart,
   CategoriesChart,
+  LeadTimeChart,
+  FreightRegionChart,
+  InstallmentsTicketChart,
+  ReviewsDistributionChart,
+  ReviewTopicsChart,
   AnomalyChartData,
   ForecastChartData
 } from '../types'
@@ -233,6 +356,13 @@ const dvs = ref<DeliveryScoreChart>({ faixas: [], series: [] })
 const pay = ref<PaymentChart>({ labels: [], series: [] })
 const states = ref<StatesChart>({ states: [], series: [] })
 const cats = ref<CategoriesChart>({ categories: [], series: [] })
+
+const leadTime = ref<LeadTimeChart>({ stages: [], series: [] })
+const freightRegion = ref<FreightRegionChart>({ regions: [], series: [] })
+const installments = ref<InstallmentsTicketChart>({ installments: [], series: [] })
+const reviewsDist = ref<ReviewsDistributionChart>({ scores: [], series: [] })
+const reviewTopics = ref<ReviewTopicsChart>({ topics: [], series: [], percentages: [], total_detractors: 0 })
+
 const anomalies = ref<AnomalyChartData>({
   dates: [],
   series: [],
@@ -248,7 +378,8 @@ const forecast = ref<ForecastChartData>({
   lower: [],
   upper: [],
   horizon_days: 30,
-  total_forecast: 0
+  total_forecast: 0,
+  metric: 'orders'
 })
 
 const error = ref('')
@@ -307,11 +438,34 @@ const kpiCards = computed<KpiCardProps[]>(() => {
   ]
 })
 
+const aiPanel = ref<{ askDirect: (q: string) => void } | null>(null)
+const showReportModal = ref(false)
+
+function downloadCsv(): void {
+  window.open('http://localhost:5000/api/export/csv', '_blank')
+}
+
+function onAskAiScenario(q: string): void {
+  if (aiPanel.value) {
+    aiPanel.value.askDirect(q)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+async function onForecastMetricChange(metric: 'orders' | 'revenue'): Promise<void> {
+  try {
+    const res = await api.get<ForecastChartData>(`/charts/forecast?metric=${metric}`)
+    forecast.value = res.data
+  } catch (err) {
+    console.error('Falha ao alternar métrica de previsão:', err)
+  }
+}
+
 async function fetchData(): Promise<void> {
   refreshing.value = true
   error.value = ''
   try {
-    const [a, b, c, d, e, f, g, h, i] = await Promise.all([
+    const [a, b, c, d, e, f, g, h, i, j, l, m, n, o] = await Promise.all([
       api.get<Kpis>('/kpis'),
       api.get<HourChart>('/charts/orders-by-hour'),
       api.get<MonthChart>('/charts/sales-by-month'),
@@ -320,7 +474,12 @@ async function fetchData(): Promise<void> {
       api.get<StatesChart>('/charts/top-states'),
       api.get<CategoriesChart>('/charts/top-categories'),
       api.get<AnomalyChartData>('/charts/anomalies'),
-      api.get<ForecastChartData>('/charts/forecast')
+      api.get<ForecastChartData>('/charts/forecast?metric=orders'),
+      api.get<LeadTimeChart>('/charts/lead-time'),
+      api.get<FreightRegionChart>('/charts/freight-by-region'),
+      api.get<InstallmentsTicketChart>('/charts/installments-ticket'),
+      api.get<ReviewsDistributionChart>('/charts/reviews-distribution'),
+      api.get<ReviewTopicsChart>('/charts/review-topics')
     ])
     kpis.value = a.data
     hour.value = b.data
@@ -331,6 +490,11 @@ async function fetchData(): Promise<void> {
     cats.value = g.data
     anomalies.value = h.data
     forecast.value = i.data
+    leadTime.value = j.data
+    freightRegion.value = l.data
+    installments.value = m.data
+    reviewsDist.value = n.data
+    reviewTopics.value = o.data
   } catch {
     error.value = 'Não foi possível conectar ao backend Flask (porta 5000). Verifique se o serviço está ativo.'
   } finally {

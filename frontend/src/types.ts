@@ -14,6 +14,17 @@ export interface PaymentChart { labels: string[]; series: number[] }
 export interface StatesChart { states: string[]; series: number[] }
 export interface CategoriesChart { categories: string[]; series: number[] }
 
+export interface LeadTimeChart { stages: string[]; series: number[] }
+export interface FreightRegionChart { regions: string[]; series: number[] }
+export interface InstallmentsTicketChart { installments: string[]; series: number[] }
+export interface ReviewsDistributionChart { scores: string[]; series: number[] }
+export interface ReviewTopicsChart {
+  topics: string[]
+  series: number[]
+  percentages: number[]
+  total_detractors: number
+}
+
 export interface AnomalyPoint {
   date: string
   value: number
@@ -30,6 +41,14 @@ export interface AnomalyChartData {
   anomalies: AnomalyPoint[]
 }
 
+export interface ForecastMetrics {
+  mape: number
+  accuracy: number
+  mae: number
+  rmse: number
+  model_name: string
+}
+
 export interface ForecastChartData {
   history_dates: string[]
   history: number[]
@@ -39,9 +58,43 @@ export interface ForecastChartData {
   upper: number[]
   horizon_days: number
   total_forecast: number
+  metric?: 'orders' | 'revenue'
+  metrics?: ForecastMetrics
 }
 
-export type PresetKey = 'delivery_bottlenecks' | 'cancellation_peak' | 'increase_ticket'
+export interface SimulationPayload {
+  delivery_reduction: number
+  installments_boost: number
+  freight_discount_ne: number
+}
+
+export interface SimulationResult {
+  inputs: SimulationPayload
+  base: {
+    score: number
+    orders: number
+    ticket: number
+    revenue: number
+  }
+  projected: {
+    score: number
+    orders: number
+    ticket: number
+    revenue: number
+  }
+  deltas: {
+    score: number
+    revenue: number
+    detractors_avoided: number
+    new_orders: number
+  }
+}
+
+export type PresetKey =
+  | 'delivery_bottlenecks'
+  | 'cancellation_peak'
+  | 'increase_ticket'
+  | 'customer_complaints'
 
 export type InsightPayload =
   | { preset: PresetKey }

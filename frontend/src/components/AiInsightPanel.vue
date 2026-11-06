@@ -113,6 +113,7 @@ interface Preset {
 }
 
 const presets: Preset[] = [
+  { key: 'customer_complaints', label: 'Causas de insatisfação nos reviews (1-2★)', icon: 'rate_review' },
   { key: 'delivery_bottlenecks', label: 'Gargalos no prazo de entrega por estado', icon: 'local_shipping' },
   { key: 'cancellation_peak', label: 'Causas do pico de cancelamentos', icon: 'cancel' },
   { key: 'increase_ticket', label: 'Estratégias para alavancar o ticket médio', icon: 'price_check' }
@@ -245,6 +246,12 @@ function askFree(): void {
   void ask({ question: q }, q)
   question.value = ''
 }
+
+defineExpose({
+  askDirect: (q: string) => {
+    void ask({ question: q }, 'Parecer Executivo sobre Cenário Simulado')
+  }
+})
 </script>
 
 <style scoped>
