@@ -1,27 +1,27 @@
 <template>
-  <q-card flat class="chart-card" :class="{ 'chart-card--dark': $q.dark.isActive }">
+  <q-card flat class="carbon-chart-card">
     <q-card-section class="q-pb-none">
       <div class="row items-center no-wrap justify-between">
         <div class="row items-center no-wrap">
-          <div class="chart-title">{{ title }}</div>
-          <q-badge v-if="badge" :color="badgeColor" rounded class="q-ml-sm" :label="badge" />
+          <div class="carbon-chart-title">{{ title }}</div>
+          <span v-if="badge" class="carbon-tag q-ml-sm" :class="badgeClass">{{ badge }}</span>
         </div>
-        <q-btn v-if="description" flat round dense icon="help_outline" size="sm" :color="$q.dark.isActive ? 'grey-4' : 'grey-7'">
-          <q-tooltip class="bg-blue-grey-10 text-white shadow-3" max-width="300px" anchor="top middle" self="bottom middle">
+        <q-btn v-if="description" flat round dense icon="help_outline" size="sm" class="carbon-help-btn">
+          <q-tooltip class="carbon-tooltip" max-width="320px" anchor="top middle" self="bottom middle">
             <div class="text-weight-bold q-mb-xs">{{ title }}</div>
-            <div style="font-size: 0.82rem; line-height: 1.4">{{ description }}</div>
+            <div class="carbon-tooltip-desc">{{ description }}</div>
           </q-tooltip>
         </q-btn>
       </div>
-      <div v-if="caption" class="text-caption chart-caption q-mt-xs">
+      <div v-if="caption" class="carbon-chart-caption q-mt-xs">
         {{ caption }}
       </div>
     </q-card-section>
 
     <q-card-section class="q-pt-sm">
       <apexchart v-if="hasData" :type="type" :height="height" :options="options" :series="chartSeries" />
-      <div v-else class="column items-center justify-center q-pa-xl text-grey-6" style="min-height: 220px">
-        <q-spinner-puff color="primary" size="44px" />
+      <div v-else class="column items-center justify-center q-pa-xl carbon-loading-state" style="min-height: 220px">
+        <q-spinner-puff color="primary" size="40px" />
         <div class="q-mt-md text-caption">Carregando métricas...</div>
       </div>
     </q-card-section>
@@ -32,6 +32,7 @@
 import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import type { ApexOptions } from 'apexcharts'
+import { getCarbonTokens } from '../tokens'
 
 const $q = useQuasar()
 
@@ -73,6 +74,13 @@ const props = withDefaults(
 
 const hasData = computed(() => props.data && props.data.length > 0)
 
+const badgeClass = computed(() => {
+  if (props.badgeColor === 'negative') return 'carbon-tag--danger'
+  if (props.badgeColor === 'positive') return 'carbon-tag--success'
+  if (props.badgeColor?.includes('amber')) return 'carbon-tag--warning'
+  return 'carbon-tag--neutral'
+})
+
 const fmt = (v: number): string => {
   if (props.currency) {
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
@@ -90,39 +98,36 @@ const chartSeries = computed(() =>
   props.type === 'donut' ? props.data : [{ name: props.seriesName, data: props.data }]
 )
 
-const darkPalette = ['#7C4DFF', '#00E5FF', '#00E676', '#FFAB00', '#FF5252', '#FF4081', '#40C4FF', '#E040FB']
-const lightPalette = ['#1976D2', '#00897B', '#FB8C00', '#E53935', '#8E24AA', '#3949AB', '#0288D1', '#5E35B1']
-
 const options = computed<ApexOptions>(() => {
   const isDark = $q.dark.isActive
-  const textColor = isDark ? '#B0BEC5' : '#546E7A'
-  const gridColor = isDark ? '#2B2D42' : '#ECEFF1'
-  const colors = isDark ? darkPalette : lightPalette
+  const tokens = getCarbonTokens(isDark)
+
+  const colors = props.type === 'donut' ? tokens.chartSeries : [tokens.primary]
 
   const base: ApexOptions = {
     chart: {
       toolbar: { show: false },
-      fontFamily: 'inherit',
+      fontFamily: 'var(--font-sans)',
       background: 'transparent',
-      foreColor: textColor,
+      foreColor: tokens.chartText,
       animations: {
         enabled: true,
-        speed: 500,
-        dynamicAnimation: { enabled: true, speed: 350 }
+        speed: 350,
+        dynamicAnimation: { enabled: true, speed: 250 }
       }
     },
     theme: { mode: isDark ? 'dark' : 'light' },
     dataLabels: { enabled: false },
     colors,
     grid: {
-      borderColor: gridColor,
-      strokeDashArray: 3,
+      borderColor: tokens.chartGrid,
+      strokeDashArray: 2,
       xaxis: { lines: { show: false } },
       yaxis: { lines: { show: true } }
     },
     legend: {
       position: 'bottom',
-      labels: { colors: textColor }
+      labels: { colors: tokens.chartText }
     }
   }
 
@@ -133,22 +138,22 @@ const options = computed<ApexOptions>(() => {
       plotOptions: {
         pie: {
           donut: {
-            size: '68%',
+            size: '72%',
             labels: {
               show: true,
-              name: { color: textColor, fontSize: '13px', fontWeight: 600 },
+              name: { color: tokens.chartText, fontSize: '13px', fontWeight: 500 },
               value: {
-                color: textColor,
+                color: tokens.textPrimary,
                 fontSize: '18px',
-                fontWeight: 700,
+                fontWeight: 600,
                 formatter: (val: string) => fmt(Number(val))
               },
               total: {
                 show: true,
                 label: 'Total',
-                color: textColor,
+                color: tokens.chartText,
                 fontSize: '12px',
-                fontWeight: 600,
+                fontWeight: 500,
                 formatter: (w: { globals: { seriesTotals: number[] } }) =>
                   fmt(w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0))
               }
@@ -156,7 +161,7 @@ const options = computed<ApexOptions>(() => {
           }
         }
       },
-      stroke: { show: true, width: 2, colors: [isDark ? '#1E1E2F' : '#FFFFFF'] }
+      stroke: { show: true, width: 2, colors: [tokens.layer01] }
     }
   }
 
@@ -167,22 +172,22 @@ const options = computed<ApexOptions>(() => {
       labels: {
         rotate: props.labels.length > 8 ? -35 : 0,
         hideOverlappingLabels: true,
-        style: { colors: textColor, fontSize: '11px' }
+        style: { colors: tokens.chartText, fontSize: '11px', fontFamily: 'var(--font-sans)' }
       },
-      axisBorder: { color: gridColor },
-      axisTicks: { color: gridColor }
+      axisBorder: { color: tokens.chartGrid },
+      axisTicks: { color: tokens.chartGrid }
     },
     yaxis: {
       ...(props.yMin !== undefined && { min: props.yMin }),
       ...(props.yMax !== undefined && { max: props.yMax }),
       labels: {
         formatter: (v: number) => fmt(v),
-        style: { colors: textColor, fontSize: '11px' }
+        style: { colors: tokens.chartText, fontSize: '11px', fontFamily: 'var(--font-sans)' }
       }
     },
     stroke: {
       curve: 'smooth',
-      width: props.type === 'area' ? 3 : 0
+      width: props.type === 'area' ? 2.5 : 0
     },
     fill:
       props.type === 'area'
@@ -190,17 +195,17 @@ const options = computed<ApexOptions>(() => {
             type: 'gradient',
             gradient: {
               shadeIntensity: 1,
-              opacityFrom: isDark ? 0.6 : 0.45,
-              opacityTo: 0.05,
-              stops: [0, 90, 100]
+              opacityFrom: isDark ? 0.45 : 0.35,
+              opacityTo: 0.02,
+              stops: [0, 95, 100]
             }
           }
         : {},
     plotOptions: {
       bar: {
         horizontal: props.horizontal,
-        borderRadius: 5,
-        columnWidth: '50%'
+        borderRadius: 0,
+        columnWidth: '48%'
       }
     },
     tooltip: {
@@ -212,36 +217,80 @@ const options = computed<ApexOptions>(() => {
 </script>
 
 <style scoped>
-.chart-card {
-  border-radius: 14px;
-  border: 1px solid #E2E8F0;
-  background: #FFFFFF;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+.carbon-chart-card {
+  border-radius: var(--radius-none);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-layer-01);
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.2s ease;
 }
 
-.chart-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+.carbon-chart-card:hover {
+  border-color: var(--color-border-strong);
 }
 
-.chart-card--dark {
-  background: #1E1E2F;
-  border-color: #2D2D44;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+.carbon-chart-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.16px;
+  color: var(--color-text-primary);
 }
 
-.chart-card--dark:hover {
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+.carbon-chart-caption {
+  font-size: 0.75rem;
+  color: var(--color-text-helper);
 }
 
-.chart-title {
-  font-size: 0.98rem;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+.carbon-help-btn {
+  color: var(--color-text-secondary);
 }
 
-.chart-caption {
-  opacity: 0.68;
+.carbon-loading-state {
+  color: var(--color-text-secondary);
+}
+
+.carbon-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.32px;
+  border-radius: var(--radius-none);
+}
+
+.carbon-tag--neutral {
+  background-color: var(--color-layer-02);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.carbon-tag--success {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.carbon-tag--warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.carbon-tag--danger {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.carbon-tooltip {
+  background-color: var(--color-header-bg);
+  color: var(--color-header-text);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-none);
+  padding: 8px 12px;
+}
+
+.carbon-tooltip-desc {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
 }
 </style>

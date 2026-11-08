@@ -2,3 +2,5 @@ flask
 flask-cors
 pandas
 groq
+gunicorn
+python-dotenv

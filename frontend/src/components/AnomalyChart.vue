@@ -1,34 +1,36 @@
 <template>
-  <q-card flat class="chart-card" :class="{ 'chart-card--dark': $q.dark.isActive }">
+  <q-card flat class="carbon-chart-card">
     <q-card-section class="q-pb-none">
       <div class="row items-center justify-between no-wrap q-mb-xs">
         <div class="row items-center no-wrap">
-          <q-icon name="warning" color="warning" size="20px" class="q-mr-sm" />
-          <div class="chart-title">{{ title }}</div>
-          <q-badge color="negative" rounded class="q-ml-sm" :label="`${data.anomalies.length} anomalias`" />
+          <q-icon name="warning_amber" class="text-warning-token q-mr-sm" size="18px" />
+          <div class="carbon-chart-title">{{ title }}</div>
+          <span class="carbon-tag carbon-tag--danger q-ml-sm">
+            {{ data.anomalies.length }} anomalias
+          </span>
         </div>
-        <q-btn flat round dense icon="help_outline" size="sm" :color="$q.dark.isActive ? 'grey-4' : 'grey-7'">
-          <q-tooltip class="bg-blue-grey-10 text-white shadow-3" max-width="320px" anchor="top middle" self="bottom middle">
+        <q-btn flat round dense icon="help_outline" size="sm" class="carbon-help-btn">
+          <q-tooltip class="carbon-tooltip" max-width="320px" anchor="top middle" self="bottom middle">
             <div class="text-weight-bold q-mb-xs">Como funciona a Detecção?</div>
-            <div style="font-size: 0.82rem; line-height: 1.4">
+            <div class="carbon-tooltip-desc">
               Compara cada dia com a janela dos 28 dias anteriores via <strong>z-score</strong>. Se o desvio for maior que 3σ, o dia é destacado como pico incomum ou queda drástica.
             </div>
           </q-tooltip>
         </q-btn>
       </div>
 
-      <!-- Legendas Visuais Rápidas -->
-      <div class="row items-center q-gutter-x-md q-gutter-y-xs q-mt-xs text-caption legend-bar">
+      <!-- Legendas Visuais Carbon -->
+      <div class="row items-center q-gutter-x-md q-gutter-y-xs q-mt-xs carbon-legend-bar">
         <div class="row items-center">
-          <span class="legend-dot" :style="{ background: $q.dark.isActive ? '#00E5FF' : '#1976D2' }"></span>
+          <span class="legend-indicator legend-indicator--primary"></span>
           <span>Pedidos reais</span>
         </div>
         <div class="row items-center">
-          <span class="legend-dot" style="background: #E53935"></span>
+          <span class="legend-indicator legend-indicator--danger"></span>
           <span>Pico atípico</span>
         </div>
         <div class="row items-center">
-          <span class="legend-dot" style="background: #FFB300"></span>
+          <span class="legend-indicator legend-indicator--warning"></span>
           <span>Queda brusca</span>
         </div>
         <div class="row items-center">
@@ -46,23 +48,23 @@
         :options="options"
         :series="series"
       />
-      <div v-else class="column items-center justify-center q-pa-xl text-grey-6" style="min-height: 240px">
-        <q-spinner-puff color="primary" size="44px" />
+      <div v-else class="column items-center justify-center q-pa-xl carbon-loading-state" style="min-height: 240px">
+        <q-spinner-puff color="primary" size="40px" />
         <div class="q-mt-md text-caption">Calculando desvios e anomalias...</div>
       </div>
     </q-card-section>
 
-    <!-- Drawer Expansível com Tabela Resumo das Anomalias -->
-    <q-separator :dark="$q.dark.isActive" />
+    <!-- Expansível com Tabela Resumo das Anomalias -->
+    <q-separator />
     <q-expansion-item
       dense
       icon="table_chart"
       label="Ver lista detalhada dos eventos atípicos"
-      header-class="text-caption text-weight-medium text-primary"
+      header-class="carbon-expansion-header"
       expand-separator
     >
       <div class="q-pa-sm anomaly-table-container">
-        <table class="anomaly-table" :class="{ 'anomaly-table--dark': $q.dark.isActive }">
+        <table class="carbon-data-table">
           <thead>
             <tr>
               <th>Data</th>
@@ -76,20 +78,18 @@
             <tr v-for="a in sortedAnomalies" :key="a.date">
               <td class="text-weight-bold">{{ formatDate(a.date) }}</td>
               <td>
-                <q-chip
-                  dense
-                  size="sm"
-                  :color="a.type === 'pico' ? 'negative' : 'warning'"
-                  text-color="white"
-                  :icon="a.type === 'pico' ? 'arrow_upward' : 'arrow_downward'"
+                <span
+                  class="carbon-tag"
+                  :class="a.type === 'pico' ? 'carbon-tag--danger' : 'carbon-tag--warning'"
                 >
+                  <q-icon :name="a.type === 'pico' ? 'arrow_upward' : 'arrow_downward'" size="12px" class="q-mr-xs" />
                   {{ a.type === 'pico' ? 'Pico Incomum' : 'Queda Brusca' }}
-                </q-chip>
+                </span>
               </td>
               <td class="text-weight-bold">{{ a.value.toLocaleString('pt-BR') }}</td>
               <td>~{{ a.expected.toLocaleString('pt-BR') }}</td>
               <td>
-                <span :class="a.z > 0 ? 'text-negative text-weight-bold' : 'text-warning text-weight-bold'">
+                <span :class="a.z > 0 ? 'text-danger-token text-weight-bold' : 'text-warning-token text-weight-bold'">
                   {{ a.z > 0 ? '+' : '' }}{{ a.z }}σ
                 </span>
               </td>
@@ -106,6 +106,7 @@ import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import type { ApexOptions } from 'apexcharts'
 import type { AnomalyChartData } from '../types'
+import { getCarbonTokens } from '../tokens'
 
 const $q = useQuasar()
 
@@ -140,33 +141,31 @@ const series = computed(() => [
 
 const options = computed<ApexOptions>(() => {
   const isDark = $q.dark.isActive
-  const textColor = isDark ? '#B0BEC5' : '#546E7A'
-  const gridColor = isDark ? '#2B2D42' : '#ECEFF1'
-  const lineColor = isDark ? '#00E5FF' : '#1976D2'
+  const tokens = getCarbonTokens(isDark)
 
   return {
     chart: {
       toolbar: { show: false },
       zoom: { enabled: true, type: 'x' },
-      fontFamily: 'inherit',
+      fontFamily: 'var(--font-sans)',
       background: 'transparent',
-      foreColor: textColor
+      foreColor: tokens.chartText
     },
     theme: { mode: isDark ? 'dark' : 'light' },
-    colors: [lineColor, '#78909C', '#78909C'],
-    stroke: { width: [2.5, 1.2, 1.2], dashArray: [0, 5, 5], curve: 'smooth' },
+    colors: [tokens.primary, tokens.borderStrong, tokens.borderStrong],
+    stroke: { width: [2.5, 1.2, 1.2], dashArray: [0, 4, 4], curve: 'smooth' },
     dataLabels: { enabled: false },
     legend: { show: false },
-    grid: { borderColor: gridColor, strokeDashArray: 3 },
+    grid: { borderColor: tokens.chartGrid, strokeDashArray: 2 },
     xaxis: {
       type: 'datetime',
-      labels: { style: { colors: textColor, fontSize: '11px' } },
-      axisBorder: { color: gridColor }
+      labels: { style: { colors: tokens.chartText, fontSize: '11px', fontFamily: 'var(--font-sans)' } },
+      axisBorder: { color: tokens.chartGrid }
     },
     yaxis: {
       labels: {
         formatter: (v: number) => Math.round(v).toLocaleString('pt-BR'),
-        style: { colors: textColor, fontSize: '11px' }
+        style: { colors: tokens.chartText, fontSize: '11px', fontFamily: 'var(--font-sans)' }
       }
     },
     tooltip: {
@@ -178,20 +177,20 @@ const options = computed<ApexOptions>(() => {
         x: new Date(`${a.date}T00:00:00`).getTime(),
         y: a.value,
         marker: {
-          size: 6,
-          fillColor: a.type === 'pico' ? '#E53935' : '#FFB300',
-          strokeColor: isDark ? '#1E1E2F' : '#FFFFFF',
+          size: 5,
+          fillColor: a.type === 'pico' ? tokens.danger : tokens.warning,
+          strokeColor: tokens.layer01,
           strokeWidth: 2
         },
         label: {
           text: a.type === 'pico' ? '▲' : '▼',
           style: {
-            color: a.type === 'pico' ? '#E53935' : '#FFB300',
+            color: a.type === 'pico' ? tokens.danger : tokens.warningText,
             background: 'transparent',
             fontSize: '11px',
             fontWeight: 'bold'
           },
-          offsetY: -8
+          offsetY: -6
         }
       }))
     }
@@ -200,53 +199,98 @@ const options = computed<ApexOptions>(() => {
 </script>
 
 <style scoped>
-.chart-card {
-  border-radius: 14px;
-  border: 1px solid #E2E8F0;
-  background: #FFFFFF;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.3s ease;
+.carbon-chart-card {
+  border-radius: var(--radius-none);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-layer-01);
+  box-shadow: none;
+  transition: border-color 0.15s ease, background-color 0.2s ease;
 }
 
-.chart-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+.carbon-chart-card:hover {
+  border-color: var(--color-border-strong);
 }
 
-.chart-card--dark {
-  background: #1E1E2F;
-  border-color: #2D2D44;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+.carbon-chart-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.16px;
+  color: var(--color-text-primary);
 }
 
-.chart-card--dark:hover {
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.6);
+.text-warning-token {
+  color: var(--color-warning-text);
 }
 
-.chart-title {
-  font-size: 0.98rem;
-  font-weight: 700;
-  letter-spacing: 0.2px;
+.text-danger-token {
+  color: var(--color-danger);
 }
 
-.legend-bar {
-  opacity: 0.8;
+.carbon-help-btn {
+  color: var(--color-text-secondary);
 }
 
-.legend-dot {
+.carbon-loading-state {
+  color: var(--color-text-secondary);
+}
+
+.carbon-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.32px;
+  border-radius: var(--radius-none);
+}
+
+.carbon-tag--warning {
+  background-color: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.carbon-tag--danger {
+  background-color: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.carbon-legend-bar {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.legend-indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-none);
   display: inline-block;
   margin-right: 6px;
+}
+
+.legend-indicator--primary {
+  background-color: var(--color-primary);
+}
+
+.legend-indicator--danger {
+  background-color: var(--color-danger);
+}
+
+.legend-indicator--warning {
+  background-color: var(--color-warning);
 }
 
 .legend-line {
-  width: 16px;
+  width: 14px;
   height: 0;
-  border-top: 2px dashed #78909C;
+  border-top: 2px dashed var(--color-border-strong);
   display: inline-block;
   margin-right: 6px;
+}
+
+.carbon-expansion-header {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-primary);
 }
 
 .anomaly-table-container {
@@ -254,31 +298,38 @@ const options = computed<ApexOptions>(() => {
   max-height: 220px;
 }
 
-.anomaly-table {
+.carbon-data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.75rem;
 }
 
-.anomaly-table th {
+.carbon-data-table th {
   text-align: left;
   padding: 8px 12px;
-  background: #F1F5F9;
-  color: #475569;
+  background-color: var(--color-layer-02);
+  color: var(--color-text-secondary);
   font-weight: 600;
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.anomaly-table td {
+.carbon-data-table td {
   padding: 6px 12px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
 }
 
-.anomaly-table--dark th {
-  background: #252538;
-  color: #94A3B8;
+.carbon-tooltip {
+  background-color: var(--color-header-bg);
+  color: var(--color-header-text);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-none);
+  padding: 8px 12px;
 }
 
-.anomaly-table--dark td {
-  border-bottom: 1px solid #2D2D44;
+.carbon-tooltip-desc {
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
 }
 </style>

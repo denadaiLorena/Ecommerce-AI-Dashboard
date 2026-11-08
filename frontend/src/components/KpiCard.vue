@@ -1,21 +1,27 @@
 <template>
-  <q-card flat class="kpi-card" :class="{ 'kpi-card--dark': $q.dark.isActive }">
-    <div class="kpi-accent" :style="{ background: gradientMap[color] || gradientMap.primary }"></div>
-    <q-card-section class="row items-center no-wrap q-py-md">
-      <div class="kpi-icon-wrap" :style="{ background: bgMap[color] || bgMap.primary }">
-        <q-icon :name="icon" size="24px" color="white" />
+  <q-card flat class="carbon-kpi-tile">
+    <!-- Indicador semântico superior discreto estilo Carbon -->
+    <div class="carbon-kpi-indicator" :class="indicatorClass"></div>
+
+    <q-card-section class="q-pa-md">
+      <div class="row items-center justify-between no-wrap q-mb-xs">
+        <span class="carbon-kpi-label ellipsis">{{ title }}</span>
+        <q-icon :name="icon" size="18px" :class="iconClass" />
       </div>
-      <div class="q-ml-md col">
-        <div class="kpi-label">{{ title }}</div>
-        <div class="kpi-value">{{ value }}</div>
-        <div v-if="subtitle" class="kpi-sub">{{ subtitle }}</div>
+
+      <div class="carbon-kpi-value q-my-xs">{{ value }}</div>
+
+      <div v-if="subtitle" class="carbon-kpi-sub ellipsis">
+        {{ subtitle }}
       </div>
     </q-card-section>
   </q-card>
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     title: string
     value: string | number
@@ -30,73 +36,108 @@ withDefaults(
   }
 )
 
-const gradientMap: Record<string, string> = {
-  positive: 'linear-gradient(180deg, #43A047, #66BB6A)',
-  primary: 'linear-gradient(180deg, #1976D2, #42A5F5)',
-  negative: 'linear-gradient(180deg, #E53935, #EF5350)',
-  'amber-8': 'linear-gradient(180deg, #FF8F00, #FFB300)',
-}
+const indicatorClass = computed(() => {
+  switch (props.color) {
+    case 'positive':
+      return 'indicator--success'
+    case 'negative':
+      return 'indicator--danger'
+    case 'warning':
+    case 'amber-8':
+      return 'indicator--warning'
+    default:
+      return 'indicator--primary'
+  }
+})
 
-const bgMap: Record<string, string> = {
-  positive: 'linear-gradient(135deg, #43A047, #66BB6A)',
-  primary: 'linear-gradient(135deg, #1976D2, #42A5F5)',
-  negative: 'linear-gradient(135deg, #E53935, #EF5350)',
-  'amber-8': 'linear-gradient(135deg, #FF8F00, #FFB300)',
-}
+const iconClass = computed(() => {
+  switch (props.color) {
+    case 'positive':
+      return 'icon--success'
+    case 'negative':
+      return 'icon--danger'
+    case 'warning':
+    case 'amber-8':
+      return 'icon--warning'
+    default:
+      return 'icon--neutral'
+  }
+})
 </script>
 
 <style scoped>
-.kpi-card {
+.carbon-kpi-tile {
   position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-  background: white;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: var(--color-layer-01);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-none);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 112px;
 }
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+
+.carbon-kpi-tile:hover {
+  border-color: var(--color-border-strong);
 }
-.kpi-card--dark {
-  background: #1e1e2f;
-  border-color: #2d2d44;
-}
-.kpi-card--dark:hover {
-  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-}
-.kpi-accent {
+
+.carbon-kpi-indicator {
   position: absolute;
-  left: 0;
   top: 0;
-  bottom: 0;
-  width: 4px;
+  left: 0;
+  right: 0;
+  height: 2px;
 }
-.kpi-icon-wrap {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+
+.indicator--primary {
+  background-color: var(--color-primary);
 }
-.kpi-label {
+
+.indicator--success {
+  background-color: var(--color-success);
+}
+
+.indicator--danger {
+  background-color: var(--color-danger);
+}
+
+.indicator--warning {
+  background-color: var(--color-warning);
+}
+
+.carbon-kpi-label {
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  opacity: 0.6;
-  margin-bottom: 2px;
+  letter-spacing: 0.32px;
+  color: var(--color-text-secondary);
 }
-.kpi-value {
-  font-size: 1.4rem;
-  font-weight: 800;
-  line-height: 1.2;
+
+.carbon-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
 }
-.kpi-sub {
-  font-size: 0.78rem;
-  opacity: 0.5;
-  margin-top: 2px;
+
+.carbon-kpi-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-helper);
+  line-height: 1.3;
+}
+
+.icon--neutral {
+  color: var(--color-text-secondary);
+}
+
+.icon--success {
+  color: var(--color-success);
+}
+
+.icon--danger {
+  color: var(--color-danger);
+}
+
+.icon--warning {
+  color: var(--color-warning-text);
 }
 </style>

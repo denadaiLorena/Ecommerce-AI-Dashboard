@@ -1,29 +1,65 @@
-/* ── Global Transitions ── */
+@import './tokens.css';
+
+/* ── IBM Carbon Design System - Global Styles ── */
+
+html, body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
 body {
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* ── Light Mode ── */
-body {
-  background-color: #f0f2f5;
+/* ── Headings & Typography Hierarchy ── */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
 }
 
-/* ── Dark Mode ── */
-body.body--dark {
-  background-color: #121212;
+.text-subtitle1, .text-subtitle2 {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
 }
 
-/* ── Card Styles ── */
+.text-caption {
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+}
+
+/* ── Card Styles (Carbon Layer 01) ── */
 .q-card {
-  transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  background-color: var(--color-layer-01);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-none);
+  box-shadow: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 body.body--dark .q-card {
-  background-color: #1e1e2f;
-  border-color: #2d2d44;
+  background-color: var(--color-layer-01);
+  border-color: var(--color-border-subtle);
 }
 
-/* ── Smooth scrollbar ── */
+/* ── Carbon Separator ── */
+.q-separator {
+  background-color: var(--color-border-subtle);
+}
+
+/* ── Carbon Button Overrides ── */
+.q-btn {
+  font-family: var(--font-sans);
+  letter-spacing: 0.16px;
+  font-weight: 400;
+}
+
+/* ── Carbon Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -32,9 +68,9 @@ body.body--dark .q-card {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #90909060;
-  border-radius: 3px;
+  background: var(--color-scrollbar);
+  border-radius: var(--radius-none);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #90909090;
+  background: var(--color-scrollbar-hover);
 }
