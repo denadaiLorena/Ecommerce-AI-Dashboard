@@ -316,7 +316,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { api } from '../api'
+import { api, API_BASE_URL } from '../api'
 import KpiCard from '../components/KpiCard.vue'
 import SalesChart from '../components/SalesChart.vue'
 import AnomalyChart from '../components/AnomalyChart.vue'
@@ -444,7 +444,7 @@ const aiPanel = ref<{ askDirect: (q: string) => void } | null>(null)
 const showReportModal = ref(false)
 
 function downloadCsv(): void {
-  window.open('http://localhost:5000/api/export/csv', '_blank')
+  window.open(`${API_BASE_URL}/export/csv`, '_blank')
 }
 
 function onAskAiScenario(q: string): void {

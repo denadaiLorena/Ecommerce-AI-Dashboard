@@ -1,3 +1,4 @@
+import os
 import traceback
 
 from dotenv import load_dotenv
@@ -10,7 +11,17 @@ from services import data_service as ds  # noqa: E402
 from services import ai_service  # noqa: E402
 
 app = Flask(__name__)
-CORS(app)  # em produção, restrinja à origem do Quasar
+CORS(app)  # Permite requisições CORS (em produção pode ser restringido via env CORS_ORIGINS)
+
+
+@app.get("/")
+@app.get("/health")
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "service": "FoodCommerce AI Backend",
+        "version": "1.0.0"
+    })
 
 
 @app.get("/api/kpis")
@@ -129,4 +140,6 @@ def ai_insight():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() in ("true", "1")
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)
