@@ -1,0 +1,76 @@
+@import './tokens.css';
+
+/* ── IBM Carbon Design System - Global Styles ── */
+
+html, body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* ── Headings & Typography Hierarchy ── */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6 {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.text-subtitle1, .text-subtitle2 {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+}
+
+.text-caption {
+  font-family: var(--font-sans);
+  color: var(--color-text-secondary);
+}
+
+/* ── Card Styles (Carbon Layer 01) ── */
+.q-card {
+  background-color: var(--color-layer-01);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-none);
+  box-shadow: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+body.body--dark .q-card {
+  background-color: var(--color-layer-01);
+  border-color: var(--color-border-subtle);
+}
+
+/* ── Carbon Separator ── */
+.q-separator {
+  background-color: var(--color-border-subtle);
+}
+
+/* ── Carbon Button Overrides ── */
+.q-btn {
+  font-family: var(--font-sans);
+  letter-spacing: 0.16px;
+  font-weight: 400;
+}
+
+/* ── Carbon Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar);
+  border-radius: var(--radius-none);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-hover);
+}

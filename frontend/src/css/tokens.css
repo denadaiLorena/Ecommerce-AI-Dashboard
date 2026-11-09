@@ -1,0 +1,167 @@
+/**
+ * IBM Carbon Design System - Design Tokens
+ * FoodCommerce AI Dashboard
+ * 
+ * Regra 60-30-10:
+ * 60% Neutros (fundo, cards, bordas)
+ * 30% Secundários (texto, estrutura, header)
+ * 10% Primária / Destaque (ações, interatividades)
+ */
+
+:root {
+  /* ── Tipografia IBM Plex ── */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  /* ── Espaçamento IBM Carbon (Base 8px) ── */
+  --spacing-01: 2px;
+  --spacing-02: 4px;
+  --spacing-03: 8px;
+  --spacing-04: 12px;
+  --spacing-05: 16px;
+  --spacing-06: 24px;
+  --spacing-07: 32px;
+  --spacing-08: 40px;
+  --spacing-09: 48px;
+
+  /* ── Raios de Borda (Carbon: cantos retos ou sutilíssimos) ── */
+  --radius-none: 0px;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* ── Carbon Light Theme (White / Gray 10) ── */
+  --color-bg: #f4f4f4;
+  --color-layer-01: #ffffff;
+  --color-layer-02: #f4f4f4;
+  --color-layer-03: #e0e0e0;
+  --color-layer-hover: #e8e8e8;
+  --color-layer-active: #c6c6c6;
+
+  /* Bordas */
+  --color-border-subtle: #e0e0e0;
+  --color-border-strong: #8d8d8d;
+  --color-border-interactive: #0f62fe;
+
+  /* Textos */
+  --color-text-primary: #161616;
+  --color-text-secondary: #525252;
+  --color-text-helper: #6f6f6f;
+  --color-text-on-color: #ffffff;
+  --color-text-placeholder: #a8a8a8;
+
+  /* Header (Carbon Shell oficial: escuro com contraste nítido) */
+  --color-header-bg: #161616;
+  --color-header-text: #f4f4f4;
+  --color-header-border: #393939;
+
+  /* Cor Primária Única (IBM Blue 60 e variações) */
+  --color-primary: #0f62fe;
+  --color-primary-hover: #0353e9;
+  --color-primary-active: #002d9c;
+  --color-primary-light: #edf5ff;
+  --color-primary-dark: #001d6c;
+
+  /* Cores Semânticas (SOMENTE status, alertas e feedback) */
+  --color-success: #24a148;
+  --color-success-bg: #defbe6;
+  --color-warning: #f1c21b;
+  --color-warning-bg: #fdf5d6;
+  --color-warning-text: #8a6100;
+  --color-danger: #da1e28;
+  --color-danger-bg: #fff1f1;
+  --color-info: #0043ce;
+  --color-info-bg: #edf5ff;
+
+  /* Carbon Data Visualization Tokens (Light) */
+  --color-chart-grid: #e0e0e0;
+  --color-chart-text: #525252;
+  --color-chart-series-1: #0f62fe;
+  --color-chart-series-2: #0072c3;
+  --color-chart-series-3: #007d79;
+  --color-chart-series-4: #8a3ffc;
+  --color-chart-series-5: #1192e8;
+  --color-chart-confidence: rgba(15, 98, 254, 0.15);
+
+  /* Scrollbar */
+  --color-scrollbar: #c6c6c6;
+  --color-scrollbar-hover: #8d8d8d;
+
+  /* Integração com Quasar Framework */
+  --q-primary: var(--color-primary);
+  --q-secondary: var(--color-text-secondary);
+  --q-accent: var(--color-primary-hover);
+  --q-positive: var(--color-success);
+  --q-negative: var(--color-danger);
+  --q-info: var(--color-info);
+  --q-warning: var(--color-warning);
+  --q-dark: #262626;
+}
+
+/* ── Carbon Dark Theme (Gray 100 / Gray 90) ── */
+body.body--dark {
+  --color-bg: #161616;
+  --color-layer-01: #262626;
+  --color-layer-02: #393939;
+  --color-layer-03: #525252;
+  --color-layer-hover: #333333;
+  --color-layer-active: #525252;
+
+  /* Bordas */
+  --color-border-subtle: #393939;
+  --color-border-strong: #6f6f6f;
+  --color-border-interactive: #4589ff;
+
+  /* Textos */
+  --color-text-primary: #f4f4f4;
+  --color-text-secondary: #c6c6c6;
+  --color-text-helper: #8d8d8d;
+  --color-text-on-color: #ffffff;
+  --color-text-placeholder: #6f6f6f;
+
+  /* Header */
+  --color-header-bg: #161616;
+  --color-header-text: #f4f4f4;
+  --color-header-border: #393939;
+
+  /* Cor Primária Única (IBM Blue 50 para acessibilidade no escuro) */
+  --color-primary: #4589ff;
+  --color-primary-hover: #78a9ff;
+  --color-primary-active: #0f62fe;
+  --color-primary-light: #002d9c;
+  --color-primary-dark: #001141;
+
+  /* Cores Semânticas (Dark) */
+  --color-success: #42be65;
+  --color-success-bg: #044317;
+  --color-warning: #f1c21b;
+  --color-warning-bg: #483700;
+  --color-warning-text: #f1c21b;
+  --color-danger: #fa4d56;
+  --color-danger-bg: #520408;
+  --color-info: #4589ff;
+  --color-info-bg: #002d9c;
+
+  /* Carbon Data Visualization Tokens (Dark) */
+  --color-chart-grid: #393939;
+  --color-chart-text: #c6c6c6;
+  --color-chart-series-1: #4589ff;
+  --color-chart-series-2: #1192e8;
+  --color-chart-series-3: #009d9a;
+  --color-chart-series-4: #be95ff;
+  --color-chart-series-5: #a6c8ff;
+  --color-chart-confidence: rgba(69, 137, 255, 0.2);
+
+  /* Scrollbar */
+  --color-scrollbar: #525252;
+  --color-scrollbar-hover: #6f6f6f;
+
+  /* Integração com Quasar */
+  --q-primary: var(--color-primary);
+  --q-secondary: var(--color-text-secondary);
+  --q-accent: var(--color-primary-hover);
+  --q-positive: var(--color-success);
+  --q-negative: var(--color-danger);
+  --q-info: var(--color-info);
+  --q-warning: var(--color-warning);
+}
+
