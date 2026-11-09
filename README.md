@@ -1,12 +1,12 @@
-# 🛒 FoodCommerce AI Dashboard — AI Metric Pulse
+# 🛒 Ecommerce AI Dashboard — AI Metric Pulse
 
 > Plataforma analítica executiva de e-commerce com inteligência preditiva, detecção contínua de anomalias, simulador estratégico *What-If* e copiloto de IA analítica generativa. Construída com base no **IBM Carbon Design System**.
 
 ---
 
-## 📌 Visão Geral
+##  Visão Geral
 
-O **FoodCommerce AI Dashboard (AI Metric Pulse)** é uma aplicação full-stack voltada para diretores e gestores de e-commerce. Integrado à base de dados real do marketplace **Olist** (~100.000 pedidos), o sistema combina telemetria de negócios tradicional com algoritmos de *Machine Learning* e inteligência artificial via LLM.
+O **Ecommerce AI Dashboard (AI Metric Pulse)** é uma aplicação full-stack voltada para diretores e gestores de e-commerce. Integrado à base de dados real do marketplace **Olist** (~100.000 pedidos), o sistema combina telemetria de negócios tradicional com algoritmos de *Machine Learning* e inteligência artificial via LLM.
 
 ### Principais Funcionalidades
 
@@ -19,7 +19,7 @@ O **FoodCommerce AI Dashboard (AI Metric Pulse)** é uma aplicação full-stack 
 
 ---
 
-## 🎨 Design System: IBM Carbon
+##  Design System: IBM Carbon
 
 A interface segue integralmente as diretrizes e tokens do **IBM Carbon Design System** ([carbondesignsystem.com](https://carbondesignsystem.com)):
 
@@ -32,7 +32,7 @@ A interface segue integralmente as diretrizes e tokens do **IBM Carbon Design Sy
 
 ---
 
-## 🏗️ Arquitetura do Projeto
+##  Arquitetura do Projeto
 
 ```
 FoodCommerce-AI-Dashboard/
@@ -68,7 +68,7 @@ FoodCommerce-AI-Dashboard/
 
 ---
 
-## 🚀 Como Executar Localmente
+##  Como Executar Localmente
 
 ### Pré-requisitos
 - **Python 3.10+** (recomendado 3.11 ou superior)
@@ -134,7 +134,7 @@ O dashboard abrirá automaticamente no navegador em `http://localhost:9000`.
 
 ---
 
-## 🌐 Deploy em Servidor Web / Produção
+##  Deploy em Servidor Web / Produção
 
 O backend foi preparado e testado com servidor de produção **Gunicorn**, suporte a porta dinâmica (`$PORT`) e checagem de saúde (`/health`).
 
@@ -150,7 +150,7 @@ docker run -d -p 5000:5000 -e GROQ_API_KEY="sua_chave_aqui" --name backend foodc
 
 ### Deploy em Plataformas PaaS (Render, Railway, Fly.io, etc.)
 1. Aponte o repositório para o serviço web e defina o diretório raiz como `backend`.
-2. A plataforma detectará automaticamente o [Dockerfile](file:///c:/Users/loren/OneDrive/Área de Trabalho/ecommerce/FoodCommerce-AI-Dashboard/backend/Dockerfile) ou o [Procfile](file:///c:/Users/loren/OneDrive/Área de Trabalho/ecommerce/FoodCommerce-AI-Dashboard/backend/Procfile).
+2. A plataforma detectará automaticamente o [Dockerfile](file:///c:/Users/loren/OneDrive/Área de Trabalho/ecommerce/Ecommerce-AI-Dashboard/backend/Dockerfile) ou o [Procfile](file:///c:/Users/loren/OneDrive/Área de Trabalho/ecommerce/Ecommerce-AI-Dashboard/backend/Procfile).
 3. Configure a variável de ambiente no painel do serviço:
    - `GROQ_API_KEY`: sua chave de API Groq.
 
@@ -170,7 +170,7 @@ Os arquivos otimizados e minificados serão gerados em `frontend/dist/spa` e pod
 
 ---
 
-## 📡 Endpoints da API REST
+##  Endpoints da API REST
 
 | Método | Endpoint | Descrição |
 | :--- | :--- | :--- |
@@ -195,7 +195,7 @@ Os arquivos otimizados e minificados serão gerados em `frontend/dist/spa` e pod
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+##  Tecnologias Utilizadas
 
 - **Frontend:** [Vue 3](https://vuejs.org/), [Quasar Framework v2](https://quasar.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/), [ApexCharts](https://apexcharts.com/), [Axios](https://axios-http.com/).
 - **Design System:** [IBM Carbon Design System](https://carbondesignsystem.com/) & [IBM Plex Typography](https://www.ibm.com/plex/).
@@ -205,7 +205,7 @@ Os arquivos otimizados e minificados serão gerados em `frontend/dist/spa` e pod
 
 ---
 
-## 📄 Licença
+##  Licença
 
 Este projeto é desenvolvido para fins educacionais, demonstrativos e executivos. Os dados utilizados são provenientes do [Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce).
 
