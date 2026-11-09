@@ -23,5 +23,4 @@ EXPOSE 5000
 
 # Execução com servidor WSGI de produção (Gunicorn)
 # --workers 2 e --timeout 120 para permitir o carregamento do modelo e dos dados
-CMD exec gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 2 --timeout 120 app:app
-
+CMD exec gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 1 --threads 4 --timeout 120 app:app
