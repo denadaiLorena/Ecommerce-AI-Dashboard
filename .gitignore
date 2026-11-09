@@ -78,9 +78,8 @@ frontend/quasar.config.*.temporary.compiled*
 /src-capacitor/www/
 
 # ── IDEs & Editores ──
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
+.vscode/
+**/.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
