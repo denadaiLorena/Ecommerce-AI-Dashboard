@@ -223,6 +223,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { API_BASE_URL } from '../api'
 import type { Kpis, ForecastChartData } from '../types'
 
 const props = defineProps<{
@@ -278,7 +279,7 @@ function printReport(): void {
 }
 
 function downloadCsv(): void {
-  window.open('http://localhost:5000/api/export/csv', '_blank')
+  window.open(`${API_BASE_URL}/export/csv`, '_blank')
 }
 </script>
 
